@@ -1,7 +1,7 @@
 # Corrective Retrieval Augmented Generation
 This repository will release the source code for the paper:
 - [Corrective Retrieval Augmented Generation](https://arxiv.org/pdf/2401.15884.pdf). <br>
-  Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, Zhe-Hua Ling <br>
+  Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, Zhen-Hua Ling <br>
   _Preprint_ <br>
 
 ## Overview
