@@ -13,3 +13,5 @@ Specifically, **CRAG** trains a lightweight retrieval evaluator to assess the ov
 Besides, **CRAG** is plug-and-play and can be seamlessly coupled with various RAG-based approaches.
 
 <img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_method_overview.png" width=80%>
+
+<img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_result.png" width=80%>
