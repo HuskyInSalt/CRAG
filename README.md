@@ -13,8 +13,12 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 ## Update
 - 2024-02-22: Release the inference of CRAG and the weights of the retrieval evaluator used in our experiments. Will release the inference of Self-CRAG and the fine-tuning of the retrieval evaluator soon.
 
-## Dependencies
+## Requirements
+**Note: We use Python 3.11 for CRAG** To get started, install conda and run:
 ```
+git clone https://github.com/HuskyInSalt/CRAG.git
+conda create -n CRAG python=3.11
+...
 pip install -r requirements.txt
 ```
 
@@ -23,22 +27,24 @@ pip install -r requirements.txt
 - Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
 - Download the fine-tuned weights of the [retrieval evaluator](https://drive.google.com/drive/folders/1CRFGsyNguXJwKSvFvJm_82GOOlkWSkW7?usp=drive_link) used in our experiments.
 
-## Inference
+## Run CRAG
+### Inference
+#### CRAG
 Run the following command for CRAG inference.
 ```
 bash run_crag_inference.sh
 ```
 
-## Evaluation
+### Evaluation
 For Bio evaluation, please the instructions at the [FactScore (Min et al., 2023)](https://github.com/shmsw25/FActScore) official repository. 
 ```
 python -m factscore.factscorer --data_path YOUR_OUTPUT_FILE  --model_name retrieval+ChatGPT --cache_dir YOUR_CACHE_DIR --openai_key YOUR_OPEN_AI_KEY --verbose
 ```
 
 It is worth mentioning that, previous FactScore adopted **text-davinci-003** by default, which has been [deprecated since 2024-01-04](https://platform.openai.com/docs/deprecations) and replaced by **gpt-3.5-turbo-instruct**.
-Both results of CRAG and Self-CRAG reported are based on the **text-davinci-003**, which may differ from the current **gpt-3.5-turbo-instruct**.
+Both results of CRAG and Self-CRAG reported are based on the **text-davinci-003**, which may differ from the current **gpt-3.5-turbo-instruct** evaluation.
 
-For the other dataset, run the following command.
+For the other datasets, run the following command.
 ```
 bash run_eval.sh
 ```
