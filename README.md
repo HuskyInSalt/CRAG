@@ -8,7 +8,7 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 
 <img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_method_overview.png" width=80%>
 
-<img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_result.png" width=80%>
+<img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_result.png" width=60%>
 
 ## Update
 - 2024-02-22: Release the inference of CRAG and the weights of the retrieval evaluator used in our experiments. Will release the inference of Self-CRAG and the fine-tuning of the retrieval evaluator soon.
