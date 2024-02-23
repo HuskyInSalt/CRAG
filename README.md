@@ -31,12 +31,41 @@ bash run_crag_inference.sh
 
 ## Evaluation
 For Bio evaluation, please the instructions at the [FactScore (Min et al., 2023)](https://github.com/shmsw25/FActScore) official repository. 
+```
+python -m factscore.factscorer --data_path YOUR_OUTPUT_FILE  --model_name retrieval+ChatGPT --cache_dir YOUR_CACHE_DIR --openai_key YOUR_OPEN_AI_KEY --verbose
+```
+
 However, it is worth mentioning that, previous FactScore adopted **text-davinci-003** by default, which has been [deprecated since 2024-01-04](https://platform.openai.com/docs/deprecations).
 
 For the other dataset, run the following command.
 ```
 bash run_eval.sh
 ```
+
+e.g., PopQA
+```
+python eval.py \
+  --input_file eval_data/popqa_longtail_w_gs.jsonl \
+  --eval_file ../data/popqa/output/YOUR_OUTPUT_FILE \
+  --metric match 
+```
+
+PubHealth
+```
+python eval.py \
+  --input_file eval_data/health_claims_processed.jsonl \
+  --eval_file ../data/pubqa/output/YOUR_OUTPUT_FILE \
+  --metric match --task fever
+```
+
+Arc_Challenge
+```
+python run_test_eval.py \
+  --input_file eval_data/arc_challenge_processed.jsonl \
+  --eval_file ../data/arc_challenge/output/YOUR_OUTPUT_FILE \
+  --metric match --task arc_c
+```
+
 
 ## Cite
 If you think our work is helpful or use the code, please cite the following paper:
