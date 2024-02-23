@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ## Download
 - Download the **eval_data** created by [Self-RAG (Asai et al., 2023)](https://github.com/AkariAsai/self-rag) on PopQA, PubQA, Bio and Arc_challenge with retrieved results 
 - Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
-- Download the fine-tuned weights of the [retrieval evaluator]() used in our experiments.
+- Download the fine-tuned weights of the [retrieval evaluator](https://drive.google.com/drive/folders/1CRFGsyNguXJwKSvFvJm_82GOOlkWSkW7?usp=drive_link) used in our experiments.
 
 ## Inference
 Run the following command for CRAG inference.
