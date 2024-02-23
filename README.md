@@ -35,7 +35,8 @@ For Bio evaluation, please the instructions at the [FactScore (Min et al., 2023)
 python -m factscore.factscorer --data_path YOUR_OUTPUT_FILE  --model_name retrieval+ChatGPT --cache_dir YOUR_CACHE_DIR --openai_key YOUR_OPEN_AI_KEY --verbose
 ```
 
-However, it is worth mentioning that, previous FactScore adopted **text-davinci-003** by default, which has been [deprecated since 2024-01-04](https://platform.openai.com/docs/deprecations).
+It is worth mentioning that, previous FactScore adopted **text-davinci-003** by default, which has been [deprecated since 2024-01-04](https://platform.openai.com/docs/deprecations) and replaced by **gpt-3.5-turbo-instruct**.
+Both results of CRAG and Self-CRAG reported are based on the **text-davinci-003**, which may differ from the current **gpt-3.5-turbo-instruct**.
 
 For the other dataset, run the following command.
 ```
