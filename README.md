@@ -44,7 +44,7 @@ However, it is worth mentioning that, previous FactScore adopted **text-davinci-
 
 For the other dataset, run the following command.
 ```
-bash eval.sh
+bash run_eval.sh
 ```
 
 ## Notice
