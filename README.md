@@ -15,3 +15,40 @@ Besides, **CRAG** is plug-and-play and can be seamlessly coupled with various RA
 <img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_method_overview.png" width=80%>
 
 <img src="https://github.com/HuskyInSalt/CRAG/blob/main/img/crag_result.png" width=80%>
+
+## Dependencies
+
+```
+pip install -r requirements.txt
+```
+
+## Download
+
+- Download the **eval_data** created by [Self-RAG (Asai et al., 2023)](https://github.com/AkariAsai/self-rag) on PopQA, PubQA, Bio and Arc_challenge with retrieved results 
+
+- Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
+
+- Download the [Evaluator]() fine=tuned on PopQA dataset.
+
+## Inference
+
+Run the following command for CRAG inference.
+```
+bash run_crag_inference.sh
+```
+
+## Evaluation
+
+For Bio evaluation, please the instructions at the [FactScore (Min et al., 2023)](https://github.com/shmsw25/FActScore) official repository. 
+However, it is worth mentioning that, previous FactScore adopted **text-davinci-003** by default, which has been [deprecated since 2024-01-04](https://platform.openai.com/docs/deprecations).
+
+For the other dataset, run the following command.
+```
+bash eval.sh
+```
+
+## Notice
+
+We will release the remaining scripts, including correct/incorrect/ambiguous data preparation, Self-CRAG inference and evaluator fine-tuning sooner.
+
+
