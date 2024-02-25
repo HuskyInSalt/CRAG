@@ -83,7 +83,10 @@ def data_preprocess(file):
         if with_label:
             for line in f.readlines()[:]:
                 c, l = line.strip().split("\t")
-                q, p = c.split(' [SEP] ')
+                try:
+                    q, p = c.split(' [SEP] ')
+                except ValueError:
+                    continue # Skip line if no passage in line
                 if queries == []:
                     queries.append(q)
                     tmp_psgs = [p]
@@ -98,7 +101,10 @@ def data_preprocess(file):
         else:
             for line in f.readlines():
                 c = line.strip()
-                q, p = c.split(' [SEP] ')
+                try:
+                    q, p = c.split(' [SEP] ')
+                except ValueError:
+                    continue # Skip line if no passage in line
                 if queries == []:
                     queries.append(q)
                     tmp_psgs = [p]
