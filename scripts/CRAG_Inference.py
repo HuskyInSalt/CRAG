@@ -98,6 +98,8 @@ def data_preprocess(file):
         else:
             for line in f.readlines():
                 c = line.strip()
+                if c.endswith('[SEP]'):
+                    c += ' '
                 q, p = c.split(' [SEP] ')
                 if queries == []:
                     queries.append(q)
