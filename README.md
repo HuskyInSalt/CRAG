@@ -12,6 +12,7 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 
 ## Update
 - 2024-02-22: Release the inference of CRAG and the weights of the retrieval evaluator used in our experiments. Will release the inference of Self-CRAG and the fine-tuning of the retrieval evaluator soon.
+- 2024-03-01: Release the data preprocess and data preparation for the inference of Self-CRAG. 
 
 ## Requirements
 **Note: We use Python 3.11 for CRAG** To get started, install conda and run:
@@ -27,6 +28,12 @@ pip install -r requirements.txt
 - Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
 - Download the fine-tuned weights of the [retrieval evaluator](https://drive.google.com/drive/folders/1CRFGsyNguXJwKSvFvJm_82GOOlkWSkW7?usp=drive_link) used in our experiments.
 
+## Data Preprocess
+Run the following command to preprocess the dataset for questions and retrieval results. Specifically for PopQA, the label of each (question, passage) pair is also collected.
+```
+bash run_data_preprocess.sh
+```
+
 ## Run CRAG
 ### Inference
 #### CRAG
@@ -34,6 +41,12 @@ Run the following command for CRAG inference.
 ```
 bash run_crag_inference.sh
 ```
+#### Self-CRAG
+Run the following command for Self-CRAG data preparation.
+```
+bash run_selfcrag_preparation.sh
+```
+With this command, the retrieval results of the original input files of Self-RAG will be replaced by correct, incorrect and ambiguous context. Then follow the instructions at [Self-RAG (Asai et al., 2023)](https://github.com/AkariAsai/self-rag) for the ultimate results.
 
 ### Evaluation
 For Bio evaluation, please follow the instructions at the [FactScore (Min et al., 2023)](https://github.com/shmsw25/FActScore) official repository. 
