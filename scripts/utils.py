@@ -3,6 +3,13 @@ import json
 import copy
 import re
 
+from tqdm import tqdm
+import openai
+import os
+from time import sleep
+import torch
+import torch.nn as nn
+
 PROMPT_DICT = {
     "prompt_input": (
         "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:\n"
@@ -211,3 +218,82 @@ def postprocess_answers_closed(output, task, choices=None):
         return output
     else:
         return final_output
+
+class CosineSimilarity(nn.Module):
+    def forward(self, tensor_1, tensor_2):
+        normalized_tensor_1 = tensor_1 / tensor_1.norm(dim=-1, keepdim=True)
+        normalized_tensor_2 = tensor_2 / tensor_2.norm(dim=-1, keepdim=True)
+        return (normalized_tensor_1 * normalized_tensor_2).sum(dim=-1)
+
+
+def extract_keywords(questions, task, openai_key):
+    TASK_PROMPT = {
+        "popqa": "Extract at most three keywords separated by comma from the following dialogues and questions as queries for the web search, including topic background within dialogues and main intent within questions. \n\nquestion: What is Henry Feilden's occupation?\nquery: Henry Feilden, occupation\n\nquestion: In what city was Billy Carlson born?\nquery: city, Billy Carlson, born\n\nquestion: What is the religion of John Gwynn?\nquery: religion of John Gwynn\n\nquestion: What sport does Kiribati men's national basketball team play?\nquery: sport, Kiribati men's national basketball team play\n\nquestion: {{question}}\nquery: ",
+        "pubqa": "Extract at most three keywords separated by comma from the claim as queries to extract the key information. \n\nclaim: A mother revealed to her child in a letter after her death that she had just one eye because she had donated the other to him.\nquery: a mother had one eye, donated the other eye to her child after her death.\n\nclaim: WWE wrestler Ric Flair was declared brain dead on 16 May 2019. \nquery: WWE wrestler Ric Flair, brain dead on 16 May 2019\n\nclaim: Current expenditures could likely cover the estimated costs of Medicare for All.\nquery: Current expenditures could likely cover the estimated costs of Medicare for All.\n\nclaim: Measles outbreak kills more than 1,200 in Madagascar.\nquery: Measles outbreak kills more than 1,200 in Madagascar.\n\nclaim: {{question}}\nquery:  ",
+        "arc_challenge": "Extract at most three keywords separated by comma from the question as queries that can be used for searching to extract the key information. \n\nquestion: An astronomer observes that a planet rotates faster after a meteorite impact. Which is the most likely effect of this increase in rotation?\nquery: most likely effect of increase in rotation, a planet rotates faster after a meteorite impact\n\nclaim: Jefferson's class was studying sunflowers. They learned that sunflowers are able to make their own food. Which parts of a sunflower collect most of the sunlight needed to make food? \nquery: which parts of a sunflower collect most of the sunlight needed to make food\n\nquestion: A man climbed to the top of a very high mountain. While on the mountain top, he drank all the water in his plastic water bottle and then put the cover back on. When he returned to camp in the valley, he discovered the the empty bottle had collapsed. Which of the following best explains why this happened?\nquery: best to explain the phenomenon, put the cover back of empty plastic bottle on the mountain top, empty bottle collapse in the valley\n\nquestion: There are two types of modern whales: toothed whales and baleen whales. Baleen whales filter plankton from the water using baleen, plates made of fibrous proteins that grow from the roof of their mouths. The embryos of baleen whales have teeth in their upper jaws. As the embryos develop, the teeth are replaced with baleen. Which of the following conclusions is best supported by this information?\nquery: two types of whales toothed whales and baleen whales, baleen whales filter plankton with baleen, teeth replaced with baleen\n\nquestion: {{question}}\nquery:",
+    }
+    assert task in TASK_PROMPT, "Your task is not included in TASK_PROMPT for a few-shot prompt template."
+    openai.api_key = openai_key
+    queries = []
+    prompt_template = TASK_PROMPT[task]
+    for question in tqdm(questions[:]):
+        inputs = prompt_template.format(
+            question=question
+        )
+        messages = [
+            {"role": "user", "content": inputs},
+        ]
+        
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-16k", 
+                temperature=0.1,
+                messages=messages,
+            )
+        except openai.error.RateLimitError:
+            print('Rate limit error')
+            sleep(60)
+            try:
+                completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo-16k", 
+                    temperature=0.1,
+                    messages=messages,
+                )
+            except openai.error.RateLimitError:
+                print('Rate limit error')
+                sleep(60)
+                completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo-16k", 
+                    temperature=0.1,
+                    messages=messages,
+                )
+        results = completion["choices"][0]["message"]["content"]
+        queries.append(results)
+    return queries
+
+def select_relevants(strips, query, tokenizer, model, device, top_n=5):
+    device = device if torch.cuda.is_available() else 'cpu'
+    max_length = 512
+    model = model.to(device)
+    strips_data = []
+    for i, p in enumerate(strips):
+        if len(p.split()) < 4:
+            scores = -1.0
+        else:
+            input_content = query + " [SEP] " + p
+            inputs = tokenizer(input_content, return_tensors="pt",padding="max_length",truncation=True,max_length=max_length)
+            try:
+                with torch.no_grad():  
+                    outputs = model(inputs["input_ids"].to(device), 
+                                    attention_mask=inputs["attention_mask"].to(device))
+                scores = float(outputs["logits"].cpu())
+            except:
+                scores = -1.0
+        strips_data.append((scores, p, i))
+
+    def take_idx(elem):
+        return elem[0]
+    sorted_results = sorted(strips_data, key=take_idx, reverse=True)[:]
+    ctxs = [s[1] for s in sorted_results[:top_n]]
+    idxs = [str(s[2]) for s in sorted_results]
+    return '; '.join(ctxs), ', '.join(idxs)
