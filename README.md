@@ -12,6 +12,7 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 </div>
 
 ## Update
+- 2024-03-02: Release the fine-tuning of the evaluator and training data preprocessed on PopQA.
 - 2024-03-01: Release the data preprocess and data preparation for the inference of Self-CRAG. 
 - 2024-02-22: Release the inference of CRAG and the weights of the retrieval evaluator used in our experiments. Will release the inference of Self-CRAG and the fine-tuning of the retrieval evaluator soon.
 
@@ -28,6 +29,7 @@ pip install -r requirements.txt
 - Download the **eval_data** created by [Self-RAG (Asai et al., 2023)](https://github.com/AkariAsai/self-rag) on PopQA, PubQA, Bio and Arc_challenge with retrieved results 
 - Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
 - Download the fine-tuned weights of the [retrieval evaluator](https://drive.google.com/drive/folders/1CRFGsyNguXJwKSvFvJm_82GOOlkWSkW7?usp=drive_link) used in our experiments.
+- Download the [training data](https://drive.google.com/file/d/1YXyMtROND7oKTi1MgfrKm7ZVS5FTXSqW/view?usp=sharing) for the evaluator.
 
 ## Data Preprocess
 Run the following command to preprocess the dataset for questions and retrieval results. Specifically for PopQA, the label of each (question, passage) pair is also collected.
@@ -36,6 +38,13 @@ bash run_data_preprocess.sh
 ```
 
 ## Run CRAG
+### Evaluator fine-tuning
+Run the following command to fine-tune the evaluator.
+```
+bash run_evaluator_training.sh
+```
+The training data is shared and can be downloaded, the method of label collection is similar to the test set preparation in `data_process.py`.
+
 ### Inference
 #### CRAG
 Run the following command for CRAG inference.
