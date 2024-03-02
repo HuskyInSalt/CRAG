@@ -43,7 +43,7 @@ Run the following command to fine-tune the evaluator.
 ```
 bash run_evaluator_training.sh
 ```
-The training data is shared and can be downloaded, the method of label collection is similar to the test set preparation in `data_process.py`.
+The training data is shared and can be downloaded, the method of label collection is similar to the test set preparation in `scripts/data_process.py`.
 
 ### Inference
 #### CRAG
