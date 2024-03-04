@@ -94,7 +94,7 @@ def data_preprocess(file):
                         tmp_psgs = [p]
                     else:
                         tmp_psgs.append(p)
-                passages.append(' [sep] '.join(tmp_psgs))
+            passages.append(' [sep] '.join(tmp_psgs))
         else:
             for line in f.readlines():
                 c = line.strip()
@@ -111,7 +111,7 @@ def data_preprocess(file):
                         tmp_psgs = [p]
                     else:
                         tmp_psgs.append(p)
-                passages.append(' [sep] '.join(tmp_psgs))
+            passages.append(' [sep] '.join(tmp_psgs))
     return queries, passages
 
 def get_evaluator_data(file):
