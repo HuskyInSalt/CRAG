@@ -9,7 +9,7 @@ from transformers import T5ForSequenceClassification, T5Tokenizer
 from utils import select_relevants
 
 def extract_strips_from_psg(psg, mode="excerption"):
-    if mode == 'word_num':
+    if mode == 'fixed_num':
         final_strips = []
         window_length = 50
         words = psg.split(' ')
@@ -55,10 +55,10 @@ def extract_strips_from_psg(psg, mode="excerption"):
     elif mode == 'selection':
         return [psg]
 
-def knowledge_refinement(psgs, queries, output_path, model_name, device, segment_mode):
+def knowledge_refinement(psgs, queries, output_path, model_name, device, decompose_mode):
     tokenizer = T5Tokenizer.from_pretrained(model_name)
     model = T5ForSequenceClassification.from_pretrained(model_name, output_hidden_states=True)
-    top_n = 3 if segment_mode == "selection" else 10
+    top_n = 3 if decompose_mode == "selection" else 6
 
     output_results = []
     output_idxs = []
@@ -67,7 +67,7 @@ def knowledge_refinement(psgs, queries, output_path, model_name, device, segment
         results = ''
         strips = []
         for p in psg:
-            strips += extract_strips_from_psg(psg=p, mode=segment_mode)
+            strips += extract_strips_from_psg(psg=p, mode=decompose_mode)
 
         results, idxs = select_relevants(
                 strips=strips, 
@@ -93,7 +93,7 @@ def main():
     parser.add_argument('--input_queries', type=str)
     parser.add_argument('--input_retrieval', type=str)
     parser.add_argument('--output_file', type=str)
-    parser.add_argument('--segment_mode', type=str, default="selection", choices=['selection', 'excerption'],
+    parser.add_argument('--decompose_mode', type=str, default="selection", choices=['selection', 'excerption', 'fixed_num'],
                         help="Optional strategies to decompose the retrieval results")
     parser.add_argument('--device', type=str, default="cuda:0")
     args = parser.parse_args()
@@ -102,7 +102,7 @@ def main():
         passages = [p.strip().split('[sep]') for p in psg_f.readlines()]
         queries = [q.strip() for q in query_f.readlines()]
 
-    results = knowledge_refinement(passages, queries, args.output_file, args.model_path, args.device, args.segment_mode)
+    results = knowledge_refinement(passages, queries, args.output_file, args.model_path, args.device, args.decompose_mode)
 
 
 if __name__ == '__main__':
