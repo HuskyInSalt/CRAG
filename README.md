@@ -12,6 +12,7 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 </div>
 
 ## Update
+- 2024-03-04: Release the knowledge preparation including knowledge refinement and knowledge search to gather correct, incorrect and ambiguous knowledge.
 - 2024-03-02: Release the fine-tuning of the evaluator and training data preprocessed on PopQA.
 - 2024-03-01: Release the data preprocess and data preparation for the inference of Self-CRAG. 
 - 2024-02-22: Release the inference of CRAG and the weights of the retrieval evaluator used in our experiments. Will release the inference of Self-CRAG and the fine-tuning of the retrieval evaluator soon.
@@ -44,6 +45,49 @@ Run the following command to fine-tune the evaluator.
 bash run_evaluator_training.sh
 ```
 The training data is shared and can be downloaded, the method of label collection is similar to the test set preparation in `scripts/data_process.py`.
+
+### Knowledge Preparation
+Run the following command to gather knowledge for inference, including `correct`, `incorrect` and `ambiguous`.
+```
+bash run_knowledge_preparation.sh
+```
+Specifically, you can also run the following commands individually.
+#### Correct
+According to the paper, we decompose the retrieval results and filter out irrelevant parts. Three modes are listed to decompose passages: `fixed_num`, `excerption` and `selection`.
+`fixed_num` segments passages into a fixed number of words, 'excerption' segments passages based on the end of the sentences, while passages are not divided in `selection` mode.
+You can choose the mode by `--decompose_mode`.
+```
+python internal_knowledge_preparation.py \
+--model_path YOUR_EVALUATOR_PATH \
+--input_queries ../data/$dataset/sources \
+--input_retrieval ../data/$dataset/retrieved_psgs \
+--decompose_mode selection \
+--output_file ../data/$dataset/ref/correct 
+```
+
+#### Incorrect
+Question rewriting and web searching are proposed here, thus an openai_api_key and a search_key are required.
+In this experiment, we utilized a [third-party Google Search API platform](https://serper.dev/) for searching.
+Two selective modes including `wiki` and `all` are available.
+`wiki` visits pages related to Wikipedia preferentially, while `all` visit all pages equally.
+```
+python external_knowledge_preparation.py \
+--model_path YOUR_EVALUATOR_PATH \
+--input_queries ../data/$dataset/sources \
+--openai_key $OPENAI_KEY \
+--search_key $SEARCH_KEY \
+--task $dataset --mode wiki\
+--output_file ../data/$dataset/ref/incorrect 
+```
+
+#### Ambiguous
+Run the following command to combine both correct and incorrect knowledge for ambiguous action.
+```
+python combined_knowledge_preparation.py \
+--correct_path ../data/$dataset/ref/correct \
+--incorrect_path ../data/$dataset/ref/incorrect \
+--ambiguous_path ../data/$dataset/ref/ambiguous 
+```
 
 ### Inference
 #### CRAG
