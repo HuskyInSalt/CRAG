@@ -8,7 +8,7 @@ python internal_knowledge_preparation.py \
 --model_path YOUR_EVALUATOR_PATH \
 --input_queries ../data/$dataset/sources \
 --input_retrieval ../data/$dataset/retrieved_psgs \
---segment_mode selection \
+--decompose_mode selection \
 --output_file ../data/$dataset/ref/correct 
 
 python external_knowledge_preparation.py \
