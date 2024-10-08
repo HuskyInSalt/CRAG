@@ -12,6 +12,7 @@ Large language models (LLMs) inevitably exhibit hallucinations since the accurac
 </div>
 
 ## Update
+- 2024-10-08: Revise the prompt format in the inference stage to improve the performance in RAG and CRAG modes and make the generator follow instructions better.
 - 2024-03-04: Release the knowledge preparation including knowledge refinement and knowledge search to gather correct, incorrect and ambiguous knowledge.
 - 2024-03-02: Release the fine-tuning of the evaluator and training data preprocessed on PopQA.
 - 2024-03-01: Release the data preprocess and data preparation for the inference of Self-CRAG. 
