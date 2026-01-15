@@ -1,0 +1,68 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Virtual environments ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Packaging / build ---
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# --- Test / coverage ---
+.pytest_cache/
+.coverage
+coverage.xml
+.tox/
+.nox/
+htmlcov/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Logs ---
+*.log
+
+# --- IDEs / editors ---
+.vscode/
+.idea/
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- uv / caches ---
+.uv/
+
+# NOTE: uv stores caches under ~/.cache/uv by default (outside the repo),
+# but if you configure a project-local cache, ignore it here.
+.cache/
+
+# --- ML artifacts / large outputs (customize as needed) ---
+**/checkpoints/
+**/runs/
+**/wandb/
+**/mlruns/
+**/tensorboard/
+**/*.ckpt
+**/*.pt
+**/*.pth
+**/*.bin
+**/*.safetensors
+**/*.onnx
+
+# --- Local data / outputs (keep raw datasets under version control only if intended) ---
+data/**/output/
+data/**/outputs/
+data/**/predictions/
+
+
