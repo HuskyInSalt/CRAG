@@ -15,7 +15,6 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from torch.optim import AdamW
 from transformers import get_scheduler
 
-from vllm import LLM, SamplingParams
 from transformers import T5Tokenizer, T5ForSequenceClassification
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -195,6 +194,57 @@ def process_flag(scores, n_docs, threshold1, threshold2):
             tmp_flag = []
     return identification_flag
 
+def _select_generator_backend(requested_backend: str):
+    """
+    Decide which generator backend to use.
+    - If requested_backend is 'auto', prefer vllm when available, otherwise use transformers.
+    - If explicitly 'vllm', require vllm to be importable.
+    - If explicitly 'transformers', never import vllm.
+    """
+    requested_backend = (requested_backend or "auto").lower()
+    if requested_backend not in {"auto", "vllm", "transformers"}:
+        raise ValueError(f"Unknown generator backend: {requested_backend}")
+
+    if requested_backend == "transformers":
+        return "transformers", None
+
+    try:
+        from vllm import LLM, SamplingParams  # type: ignore
+        return "vllm", (LLM, SamplingParams)
+    except Exception as e:
+        if requested_backend == "vllm":
+            raise ImportError(
+                "generator_backend='vllm' requested but vllm is not available. "
+                "Install vllm or use --generator_backend transformers."
+            ) from e
+        return "transformers", None
+
+def _infer_generator_device(args_device: str | None):
+    """
+    Choose a reasonable torch device string for generator inference.
+    vLLM has its own device handling; for Transformers fallback we use torch.
+    """
+    if args_device and args_device != "auto":
+        return args_device
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+def _transformers_generate_one(prompt: str, tokenizer, model, device: str, max_new_tokens: int = 100):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            do_sample=False,
+            max_new_tokens=max_new_tokens,
+        )
+    decoded = tokenizer.decode(outputs[0], skip_special_tokens=False)
+    # Remove the prompt prefix if present.
+    return decoded[len(prompt):] if decoded.startswith(prompt) else decoded
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--generator_path', type=str)
@@ -207,6 +257,13 @@ def main():
     parser.add_argument('--task', type=str)
     parser.add_argument('--method', type=str, default="default", choices=['rag', 'crag', 'no_retrieval'])
     parser.add_argument('--device', type=str, default="cuda")
+    parser.add_argument(
+        '--generator_backend',
+        type=str,
+        default="auto",
+        choices=["auto", "vllm", "transformers"],
+        help="Generator backend. 'auto' prefers vLLM if available, otherwise uses Transformers.",
+    )
     parser.add_argument('--download_dir', type=str, help="specify vllm model download dir",
                         default=".cache")
     parser.add_argument("--ndocs", type=int, default=-1,
@@ -220,8 +277,23 @@ def main():
     args = parser.parse_args()
     args.lower_threshold = -args.lower_threshold
 
-    generator = LLM(model=args.generator_path, dtype="half")
-    sampling_params = SamplingParams(temperature=0.0, top_p=1.0, max_tokens=100, skip_special_tokens=False)
+    backend, vllm_syms = _select_generator_backend(args.generator_backend)
+    sampling_params = None
+    generator = None
+    hf_tokenizer = None
+    hf_model = None
+    generator_device = _infer_generator_device(args.device)
+
+    if backend == "vllm":
+        LLM, SamplingParams = vllm_syms
+        generator = LLM(model=args.generator_path, dtype="half")
+        sampling_params = SamplingParams(temperature=0.0, top_p=1.0, max_tokens=100, skip_special_tokens=False)
+    else:
+        hf_tokenizer = AutoTokenizer.from_pretrained(args.generator_path)
+        torch_dtype = torch.float16 if generator_device in {"cuda", "mps"} else torch.float32
+        hf_model = AutoModelForCausalLM.from_pretrained(args.generator_path, torch_dtype=torch_dtype)
+        hf_model.to(generator_device)
+        hf_model.eval()
     
     tokenizer = T5Tokenizer.from_pretrained(args.evaluator_path)
     model = T5ForSequenceClassification.from_pretrained(args.evaluator_path, num_labels=1)
@@ -263,14 +335,22 @@ def main():
     if args.method != 'no_retrieval':
         for i, (q, p) in tqdm(enumerate(zip(queries, paragraphs))):
             prompt = format_prompt(i, args.task, q, p, modelname)
-            pred = generator.generate([prompt], sampling_params)
-            preds.append(postprocess_answer_option_conditioned(pred[0].outputs[0].text))
+            if backend == "vllm":
+                pred = generator.generate([prompt], sampling_params)
+                text = pred[0].outputs[0].text
+            else:
+                text = _transformers_generate_one(prompt, hf_tokenizer, hf_model, generator_device, max_new_tokens=100)
+            preds.append(postprocess_answer_option_conditioned(text))
     else:
         for i, q in tqdm(enumerate(queries)):
             p = None
             prompt = format_prompt(i, args.task, q, p, modelname)
-            pred = generator.generate([prompt], sampling_params)
-            preds.append(postprocess_answer_option_conditioned(pred[0].outputs[0].text))
+            if backend == "vllm":
+                pred = generator.generate([prompt], sampling_params)
+                text = pred[0].outputs[0].text
+            else:
+                text = _transformers_generate_one(prompt, hf_tokenizer, hf_model, generator_device, max_new_tokens=100)
+            preds.append(postprocess_answer_option_conditioned(text))
 
     with open(args.output_file, 'w') as f:
         f.write('\n'.join(preds))

@@ -27,6 +27,20 @@ conda create -n CRAG python=3.11
 pip install -r requirements.txt
 ```
 
+### macOS note
+`requirements.txt` contains several Linux/CUDA-only packages (e.g. `flash-attn`, `deepspeed`, `nvidia-*`).  
+On macOS, install the provided CPU-friendly set instead:
+```
+pip install -r requirements-macos.txt
+```
+Additionally, on Apple Silicon you can use PyTorch's `mps` backend (Metal) for evaluator training and inference:
+```
+device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
+```
+This enables GPU acceleration on macOS when `mps` is available.
+
+Note: `scripts/CRAG_Inference.py` can use vLLM if installed, but on macOS we do not rely on it by default because vLLM support is still experimental and may require building from source (Xcode toolchain). The script will automatically fall back to a pure-Transformers generator if `vllm` is not available (or if you pass `--generator_backend transformers`).
+
 ## Download
 - Download the **eval_data** created by [Self-RAG (Asai et al., 2023)](https://github.com/AkariAsai/self-rag) on PopQA, PubQA, Bio and Arc_challenge with retrieved results 
 - Download the **LLaMA-2** fine-tuned by [Self-RAG (Asai et al., 2023)](https://huggingface.co/selfrag/selfrag_llama2_7b).
